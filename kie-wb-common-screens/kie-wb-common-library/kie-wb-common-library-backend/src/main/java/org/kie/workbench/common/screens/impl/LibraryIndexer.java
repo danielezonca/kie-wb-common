@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -82,12 +83,23 @@ public class LibraryIndexer extends AbstractFileIndexer {
         return !(this.isFolder(path) || this.isHidden(path)) && this.isSupportedByAnyResourceType(path);
     }
 
+    // FIXME
     private boolean isSupportedByAnyResourceType(Path path) {
         org.uberfire.backend.vfs.Path convertedPath = convertPath(path);
+        return isAccepted(convertedPath) && !isSkipped(convertedPath);
+    }
+
+    private boolean isAccepted(org.uberfire.backend.vfs.Path path) {
         return this.getVisibleResourceTypes()
                 .stream()
                 .anyMatch(resourceTypeDefinition ->
-                                  resourceTypeDefinition.accept(convertedPath));
+                                  resourceTypeDefinition.accept(path));
+    }
+
+    private boolean isSkipped(org.uberfire.backend.vfs.Path path) {
+        return this.getVisibleResourceTypes()
+                .stream()
+                .anyMatch(resourceTypeDefinition -> resourceTypeDefinition.skip(path));
     }
 
     @Override
